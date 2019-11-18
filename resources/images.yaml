@@ -5,17 +5,17 @@ metadata:
 spec:
   containers:
   - name: jiva
-    image: quay.io/openebs/jiva:1.3.0
+    image: quay.io/openebs/jiva:1.4.0
   - name: cstor-istgt
-    image: quay.io/openebs/cstor-istgt:1.3.0
+    image: quay.io/openebs/cstor-istgt:1.4.0
   - name: cstor-pool
-    image: quay.io/openebs/cstor-pool:1.3.0
+    image: quay.io/openebs/cstor-pool:1.4.0
   - name: cstor-pool-mgmt
-    image: quay.io/openebs/cstor-pool-mgmt:1.3.0
+    image: quay.io/openebs/cstor-pool-mgmt:1.4.0
   - name: cstor-volume-mgmt
-    image: quay.io/openebs/cstor-volume-mgmt:1.3.0
+    image: quay.io/openebs/cstor-volume-mgmt:1.4.0
   - name: m-exporter
-    image: quay.io/openebs/m-exporter:1.3.0
+    image: quay.io/openebs/m-exporter:1.4.0
   - name: linux-utils
     image: quay.io/openebs/linux-utils:3.9
   - name: openebs-tools

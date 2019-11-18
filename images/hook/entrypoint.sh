@@ -1,6 +1,6 @@
 #!/bin/sh
 
-set -e
+set -eu
 
 echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
 
@@ -23,7 +23,7 @@ if [ $1 = "update" ]; then
     #               https://github.com/openebs/openebs/tree/master/k8s/upgrades.
 
     echo "--> Creating OpenEBS resources"
-    rig upsert -f /var/lib/gravity/resources/openebs-operator-1.3.0.yaml --debug
+    rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug
 
     echo "--> Checking status"
     rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug

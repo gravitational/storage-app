@@ -1,17 +1,21 @@
 REPOSITORY := gravitational.io
 NAME := storage-app
 VERSION ?= $(shell git describe --tags)
-OUT ?= $(NAME).tar.gz
+OUT_DIR ?= $(shell pwd)/build
+OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
+PACKAGE_STATE_DIR ?= $(OUT_DIR)/packages
 GRAVITY ?= gravity
 export
 
-OPENEBS_VERSION := 1.3.0
-OPENEBS_NDM_VERSION := v0.4.3
+OPENEBS_VERSION := 1.4.0
+OPENEBS_NDM_VERSION := v0.4.4
 OPENEBS_TOOLS_VERSION := 3.8
 LINUX_UTILS_VERSION := 3.9
 DEBIAN_VERSION := buster
 
-IMPORT_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
+GRAVITY_STATE_FLAGS := --state-dir=$(PACKAGE_STATE_DIR)
+GRAVITY_EXTRA_FLAGS ?=
+GRAVITY_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
 	--set-image=openebs/openebs-k8s-provisioner:$(OPENEBS_VERSION) \
 	--set-image=openebs/snapshot-controller:$(OPENEBS_VERSION) \
 	--set-image=openebs/snapshot-provisioner:$(OPENEBS_VERSION) \
@@ -30,28 +34,35 @@ IMPORT_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
 	--set-image=gravitational/debian-tall:$(DEBIAN_VERSION) \
 	--set-image=gravitational/storage-app-hook:$(VERSION)
 
-GRAVITY_EXTRA_FLAGS ?=
-
 .PHONY: tarball
-tarball: import
+tarball: check-vars import
 	$(GRAVITY) package export \
-		--ops-url=$(OPS_URL) --insecure \
-		$(GRAVITY_EXTRA_FLAGS) \
-		$(REPOSITORY)/$(NAME):$(VERSION) $(NAME)-$(VERSION).tar.gz
+		$(GRAVITY_STATE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(REPOSITORY)/$(NAME):$(VERSION) $(OUT)
 
 .PHONY: import
-import: hook
-	-$(GRAVITY) app delete \
-		$(REPOSITORY)/$(NAME):$(VERSION) \
-		--force --insecure $(GRAVITY_EXTRA_FLAGS)
+import: $(shell mkdir -p $(OUT_DIR)) check-vars hook
+	-$(GRAVITY) app delete --force --insecure  \
+		$(GRAVITY_STATE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(REPOSITORY)/$(NAME):$(VERSION)
 	$(GRAVITY) app import --vendor \
-        $(IMPORT_IMAGE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(GRAVITY_STATE_FLAGS) $(GRAVITY_IMAGE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
 		--include=resources --include=registry .
 
 .PHONY: hook
-hook:
+hook: check-vars
 	$(MAKE) -C images hook
 
 .PHONY: version
 version:
 	@echo $(VERSION)
+
+.PHONY: check-vars
+check-vars:
+	@if [ -z "$(VERSION)" ]; then \
+		echo "VERSION is not set"; exit 1; \
+	fi;
+
+.PHONY: clean
+clean:
+	rm -rf $(OUT_DIR)
