@@ -13,23 +13,23 @@ LINUX_UTILS_VERSION := 3.9
 DEBIAN_VERSION := buster
 
 GRAVITY_EXTRA_FLAGS ?=
-GRAVITY_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
-	--set-image=openebs/openebs-k8s-provisioner:$(OPENEBS_VERSION) \
-	--set-image=openebs/snapshot-controller:$(OPENEBS_VERSION) \
-	--set-image=openebs/snapshot-provisioner:$(OPENEBS_VERSION) \
-	--set-image=openebs/admission-server:$(OPENEBS_VERSION) \
-	--set-image=openebs/provisioner-localpv:$(OPENEBS_VERSION) \
-	--set-image=openebs/jiva:$(OPENEBS_VERSION) \
-	--set-image=openebs/cstor-istgt:$(OPENEBS_VERSION) \
-	--set-image=openebs/cstor-pool:$(OPENEBS_VERSION) \
-	--set-image=openebs/cstor-pool-mgmt:$(OPENEBS_VERSION) \
-	--set-image=openebs/cstor-volume-mgmt:$(OPENEBS_VERSION) \
-	--set-image=openebs/m-exporter:$(OPENEBS_VERSION) \
-	--set-image=openebs/node-disk-manager-amd64:$(OPENEBS_NDM_VERSION) \
-	--set-image=openebs/node-disk-operator-amd64:$(OPENEBS_NDM_VERSION) \
-	--set-image=openebs/linux-utils:$(LINUX_UTILS_VERSION) \
-	--set-image=openebs/openebs-tools:$(OPENEBS_TOOLS_VERSION) \
-	--set-image=gravitational/debian-tall:$(DEBIAN_VERSION) \
+GRAVITY_IMAGE_FLAGS := --set-image=quay.io/openebs/m-apiserver:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/openebs-k8s-provisioner:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/snapshot-controller:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/snapshot-provisioner:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/admission-server:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/provisioner-localpv:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/jiva:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/cstor-istgt:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/cstor-pool:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/cstor-pool-mgmt:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/cstor-volume-mgmt:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/m-exporter:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/node-disk-manager-amd64:$(OPENEBS_NDM_VERSION) \
+	--set-image=quay.io/openebs/node-disk-operator-amd64:$(OPENEBS_NDM_VERSION) \
+	--set-image=quay.io/openebs/linux-utils:$(LINUX_UTILS_VERSION) \
+	--set-image=quay.io/openebs/openebs-tools:$(OPENEBS_TOOLS_VERSION) \
+	--set-image=quay.io/gravitational/debian-tall:$(DEBIAN_VERSION) \
 	--set-image=gravitational/storage-app-hook:$(VERSION)
 
 .PHONY: tarball
