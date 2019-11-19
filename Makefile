@@ -3,7 +3,6 @@ NAME := storage-app
 VERSION ?= $(shell git describe --tags)
 OUT_DIR ?= $(shell pwd)/build
 OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
-PACKAGE_STATE_DIR ?= $(OUT_DIR)/packages
 GRAVITY ?= gravity
 export
 
@@ -13,7 +12,6 @@ OPENEBS_TOOLS_VERSION := 3.8
 LINUX_UTILS_VERSION := 3.9
 DEBIAN_VERSION := buster
 
-GRAVITY_STATE_FLAGS := --state-dir=$(PACKAGE_STATE_DIR)
 GRAVITY_EXTRA_FLAGS ?=
 GRAVITY_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
 	--set-image=openebs/openebs-k8s-provisioner:$(OPENEBS_VERSION) \
@@ -37,16 +35,16 @@ GRAVITY_IMAGE_FLAGS := --set-image=openebs/m-apiserver:$(OPENEBS_VERSION) \
 .PHONY: tarball
 tarball: check-vars import
 	$(GRAVITY) package export \
-		$(GRAVITY_STATE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(GRAVITY_EXTRA_FLAGS) \
 		$(REPOSITORY)/$(NAME):$(VERSION) $(OUT)
 
 .PHONY: import
 import: $(shell mkdir -p $(OUT_DIR)) check-vars hook
 	-$(GRAVITY) app delete --force --insecure  \
-		$(GRAVITY_STATE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(GRAVITY_EXTRA_FLAGS) \
 		$(REPOSITORY)/$(NAME):$(VERSION)
 	$(GRAVITY) app import --vendor \
-		$(GRAVITY_STATE_FLAGS) $(GRAVITY_IMAGE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
+		$(GRAVITY_IMAGE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
 		--include=resources --include=registry .
 
 .PHONY: hook
