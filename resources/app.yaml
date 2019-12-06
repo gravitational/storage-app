@@ -1,0 +1,70 @@
+apiVersion: bundle.gravitational.io/v2
+kind: SystemApplication
+metadata:
+  name: storage-app
+  resourceVersion: "0.0.1"
+hooks:
+  install:
+    job: |
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: storage-app-install
+      spec:
+        template:
+          metadata:
+            name: storage-app-install
+          spec:
+            restartPolicy: OnFailure
+            containers:
+              - name: hook
+                image: quay.io/gravitational/debian-tall:buster
+                command: ["/bin/sh", "/var/lib/gravity/resources/install.sh"]
+  update:
+    job: |
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: storage-app-update
+      spec:
+        template:
+          metadata:
+            name: storage-app-update
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: hook
+                image: gravitational/storage-app-hook:0.0.1
+                args: ["update"]
+  rollback:
+    job: |
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: storage-app-rollback
+      spec:
+        template:
+          metadata:
+            name: storage-app-rollback
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: hook
+                image: gravitational/storage-app-hook:0.0.1
+                args: ["rollback"]
+  uninstall:
+    job: |
+      apiVersion: batch/v1
+      kind: Job
+      metadata:
+        name: storage-app-uninstall
+      spec:
+        template:
+          metadata:
+            name: storage-app-uninstall
+          spec:
+            restartPolicy: OnFailure
+            containers:
+              - name: hook
+                image: quay.io/gravitational/debian-tall:buster
+                command: ["/bin/sh", "/var/lib/gravity/resources/uninstall.sh"]
