@@ -6,10 +6,8 @@ OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
 GRAVITY ?= gravity
 export
 
-OPENEBS_VERSION := 1.4.0
-OPENEBS_NDM_VERSION := v0.4.4
-OPENEBS_TOOLS_VERSION := 3.8
-LINUX_UTILS_VERSION := 3.9
+OPENEBS_VERSION := 1.5.0
+OPENEBS_NDM_VERSION := v0.4.5
 DEBIAN_VERSION := buster
 
 GRAVITY_EXTRA_FLAGS ?=
@@ -27,8 +25,7 @@ GRAVITY_IMAGE_FLAGS := --set-image=quay.io/openebs/m-apiserver:$(OPENEBS_VERSION
 	--set-image=quay.io/openebs/m-exporter:$(OPENEBS_VERSION) \
 	--set-image=quay.io/openebs/node-disk-manager-amd64:$(OPENEBS_NDM_VERSION) \
 	--set-image=quay.io/openebs/node-disk-operator-amd64:$(OPENEBS_NDM_VERSION) \
-	--set-image=quay.io/openebs/linux-utils:$(LINUX_UTILS_VERSION) \
-	--set-image=quay.io/openebs/openebs-tools:$(OPENEBS_TOOLS_VERSION) \
+	--set-image=quay.io/openebs/linux-utils:$(OPENEBS_VERSION) \
 	--set-image=quay.io/gravitational/debian-tall:$(DEBIAN_VERSION) \
 	--set-image=gravitational/storage-app-hook:$(VERSION)
 
