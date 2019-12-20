@@ -1,22 +1,13 @@
-apiVersion: v1
-kind: Pod
+apiVersion: cluster.gravitational.io/v1beta1
+kind: ImageSet
 metadata:
-  name: images
+  name: extra-openebs-images
 spec:
-  containers:
-  - name: jiva
-    image: quay.io/openebs/jiva:1.4.0
-  - name: cstor-istgt
-    image: quay.io/openebs/cstor-istgt:1.4.0
-  - name: cstor-pool
-    image: quay.io/openebs/cstor-pool:1.4.0
-  - name: cstor-pool-mgmt
-    image: quay.io/openebs/cstor-pool-mgmt:1.4.0
-  - name: cstor-volume-mgmt
-    image: quay.io/openebs/cstor-volume-mgmt:1.4.0
-  - name: m-exporter
-    image: quay.io/openebs/m-exporter:1.4.0
-  - name: linux-utils
-    image: quay.io/openebs/linux-utils:3.9
-  - name: openebs-tools
-    image: quay.io/openebs/openebs-tools:3.8
+  images:
+  - image: quay.io/openebs/jiva:1.5.0
+  - image: quay.io/openebs/cstor-istgt:1.5.0
+  - image: quay.io/openebs/cstor-pool:1.5.0
+  - image: quay.io/openebs/cstor-pool-mgmt:1.5.0
+  - image: quay.io/openebs/cstor-volume-mgmt:1.5.0
+  - image: quay.io/openebs/m-exporter:1.5.0
+  - image: quay.io/openebs/linux-utils:1.5.0
