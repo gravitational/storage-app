@@ -2,7 +2,7 @@ apiVersion: bundle.gravitational.io/v2
 kind: SystemApplication
 metadata:
   name: storage-app
-  resourceVersion: "0.0.1"
+  resourceVersion: "0.0.0"
 hooks:
   install:
     job: |

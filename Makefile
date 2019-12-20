@@ -40,7 +40,7 @@ import: $(shell mkdir -p $(OUT_DIR)) check-vars hook
 	-$(GRAVITY) app delete --force --insecure  \
 		$(GRAVITY_EXTRA_FLAGS) \
 		$(REPOSITORY)/$(NAME):$(VERSION)
-	$(GRAVITY) app import --vendor \
+	$(GRAVITY) app import --vendor --version=$(VERSION) \
 		$(GRAVITY_IMAGE_FLAGS) $(GRAVITY_EXTRA_FLAGS) \
 		--include=resources --include=registry .
 
