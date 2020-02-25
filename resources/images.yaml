@@ -4,10 +4,10 @@ metadata:
   name: extra-openebs-images
 spec:
   images:
-  - image: quay.io/openebs/jiva:1.5.0
-  - image: quay.io/openebs/cstor-istgt:1.5.0
-  - image: quay.io/openebs/cstor-pool:1.5.0
-  - image: quay.io/openebs/cstor-pool-mgmt:1.5.0
-  - image: quay.io/openebs/cstor-volume-mgmt:1.5.0
-  - image: quay.io/openebs/m-exporter:1.5.0
-  - image: quay.io/openebs/linux-utils:1.5.0
+  - image: quay.io/openebs/jiva:1.7.0
+  - image: quay.io/openebs/cstor-istgt:1.7.0
+  - image: quay.io/openebs/cstor-pool:1.7.0
+  - image: quay.io/openebs/cstor-pool-mgmt:1.7.0
+  - image: quay.io/openebs/cstor-volume-mgmt:1.7.0
+  - image: quay.io/openebs/m-exporter:1.7.0
+  - image: quay.io/openebs/linux-utils:1.7.0
