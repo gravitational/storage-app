@@ -29,7 +29,7 @@ if [ $1 = "update" ]; then
     #               https://github.com/openebs/openebs/tree/master/k8s/upgrades.
 
     echo "--> Creating OpenEBS resources"
-    //rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug
+    #rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug
     #kubectl apply -f https://openebs.github.io/charts/2.2.0/openebs-operator.yaml
     # kubectl apply -f ./openebs-operator_2.2.0.yaml
     rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
