@@ -28,38 +28,38 @@ if [ $1 = "update" ]; then
     #               for OpenEBS components and its pools/volumes like described in
     #               https://github.com/openebs/openebs/tree/master/k8s/upgrades.
 
-    echo "--> Creating OpenEBS resources"
+    echo "--> Creating/updating OpenEBS resources for control plane"
     #rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug
     #kubectl apply -f https://openebs.github.io/charts/2.2.0/openebs-operator.yaml
     # kubectl apply -f ./openebs-operator_2.2.0.yaml
     rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
 
-    # verify that the control plane is in the desired status
-    kubectl get pods -n openebs -l openebs.io/version=2.2.0
+    echo "--> verify that the control plane is in the desired status"
+    #kubectl get pods -n openebs -l openebs.io/version=2.2.0
     # TODO parse the output to verify that the version is correct
 
-    # upgrade Jiva volumes if used:
-    kubectl get pv  # TODO parse output
+    echo "--> upgrade Jiva volumes if used:"
+    #kubectl get pv  # TODO parse output
     #kubectl apply -f jiva-vol-2.2.0.yaml
-    rig upsert -f /var/lib/gravity/resources/jiva-vol-2.2.0.yaml --debug
+    #rig upsert -f /var/lib/gravity/resources/jiva-vol-2.2.0.yaml --debug
     # check the Jiva volume update status
-     kubectl get job -n openebs
-     kubectl get pods -n openebs #to check on the name for the job pod
-     kubectl logs -n openebs jiva-upg-1120210-bgrhx
+     #kubectl get job -n openebs
+     #kubectl get pods -n openebs #to check on the name for the job pod
+     #kubectl logs -n openebs jiva-upg-1120210-bgrhx
 
-    # TODO check if cStor is used:
-    kubectl get spc
+    echo "--> check if cStor is used:"
+    #kubectl get spc
     # TODO parse output
     # upgrade cStor
     #kubectl apply -f upgrade_cstor_pools.yaml
-    rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools.yaml --debug
+    #rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools.yaml --debug
 
 
-    # Upgrade cStor Volumes
+    echo "--> Upgrade cStor Volumes"
     # Extract the PV name
-    kubectl get pv # TODO parse output
+    #kubectl get pv # TODO parse output
     #kubectl apply -f cstor-vol-2.2.0.yaml
-    rig upsert -f /var/lib/gravity/resources/cstor-vol-2.2.0.yaml --debug
+    #rig upsert -f /var/lib/gravity/resources/cstor-vol-2.2.0.yaml --debug
 
     echo "--> Checking status"
     rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug

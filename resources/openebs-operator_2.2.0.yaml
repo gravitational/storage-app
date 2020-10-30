@@ -13,13 +13,88 @@ kind: ServiceAccount
 metadata:
   name: openebs-maya-operator
   namespace: openebs
+
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: openebs
+  annotations:
+    seccomp.security.alpha.kubernetes.io/allowedProfileNames: docker/default
+    seccomp.security.alpha.kubernetes.io/defaultProfileName: docker/default
+spec:
+  privileged: true
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  volumes:
+  - "*"
+---
+---
+# Allow OpenEBS to manage all core objects in its own namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: openebs-maya-operator
+  namespace: openebs
+rules:
+  - apiGroups: ["*"]
+    resources:
+      - services
+      - pods
+      - deployments
+      - deployments/finalizers
+      - replicationcontrollers
+      - replicasets
+      - statefulsets
+      - daemonsets
+      - events
+      - endpoints
+      - configmaps
+      - secrets
+      - jobs
+      - cronjobs
+    verbs: ["*"]
+  - apiGroups: ["*"]
+    resources: ["pods/exec"]
+    verbs: ["create"]
+  - apiGroups: ["coordination.k8s.io"]
+    resources: ["leases"]
+    verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: openebs-maya-operator
+  namespace: openebs
+subjects:
+  - kind: ServiceAccount
+    name: openebs-maya-operator
+    namespace: openebs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: openebs-maya-operator
 ---
 # Define Role that allows operations on K8s pods/deployments
 kind: ClusterRole
 apiVersion: rbac.authorization.k8s.io/v1beta1
 metadata:
   name: openebs-maya-operator
+  namespace: openebs
 rules:
+# Tie OpenEBS to its PSP.
+- apiGroups: ["extensions"]
+  resources: ["podsecuritypolicies"]
+  resourceNames: ["openebs"]
+  verbs: ["use"]
+
+# Allow OpenEBS read-only access to a few cluster-wide objects.
 - apiGroups: ["*"]
   resources: ["nodes", "nodes/proxy"]
   verbs: ["*"]
@@ -77,6 +152,40 @@ roleRef:
   name: openebs-maya-operator
   apiGroup: rbac.authorization.k8s.io
 ---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: gravity-site
+  namespace: openebs
+rules:
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs:
+      - get
+      - update
+  - apiGroups:
+      - apps
+    resources:
+      - daemonsets
+    verbs:
+      - patch
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: gravity-site
+  namespace: openebs
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: gravity-site
+subjects:
+  - kind: ServiceAccount
+    name: gravity-site
+    namespace: kube-system
+---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -105,8 +214,8 @@ spec:
       serviceAccountName: openebs-maya-operator
       containers:
       - name: maya-apiserver
-        imagePullPolicy: IfNotPresent
-        image: openebs/m-apiserver:2.2.0
+        imagePullPolicy: Always
+        image: quay.io/openebs/m-apiserver:2.2.0
         ports:
         - containerPort: 5656
         env:
@@ -155,59 +264,59 @@ spec:
         #   value: "true"
         # OPENEBS_IO_BASE_DIR is used to configure base directory for openebs on host path.
         # Where OpenEBS can store required files. Default base path will be /var/openebs
-        # - name: OPENEBS_IO_BASE_DIR
-        #   value: "/var/openebs"
+        - name: OPENEBS_IO_BASE_DIR
+          value: "/var/lib/gravity/openebs"
         # OPENEBS_IO_CSTOR_TARGET_DIR can be used to specify the hostpath
         # to be used for saving the shared content between the side cars
         # of cstor volume pod.
         # The default path used is /var/openebs/sparse
-        #- name: OPENEBS_IO_CSTOR_TARGET_DIR
-        #  value: "/var/openebs/sparse"
+        - name: OPENEBS_IO_CSTOR_TARGET_DIR
+          value: "/var/lib/gravity/openebs/sparse"
         # OPENEBS_IO_CSTOR_POOL_SPARSE_DIR can be used to specify the hostpath
         # to be used for saving the shared content between the side cars
         # of cstor pool pod. This ENV is also used to indicate the location
         # of the sparse devices.
         # The default path used is /var/openebs/sparse
-        #- name: OPENEBS_IO_CSTOR_POOL_SPARSE_DIR
-        #  value: "/var/openebs/sparse"
+        - name: OPENEBS_IO_CSTOR_POOL_SPARSE_DIR
+          value: "/var/lib/gravity/openebs/sparse"
         # OPENEBS_IO_JIVA_POOL_DIR can be used to specify the hostpath
         # to be used for default Jiva StoragePool loaded by OpenEBS
         # The default path used is /var/openebs
         # This value takes effect only if OPENEBS_IO_CREATE_DEFAULT_STORAGE_CONFIG
         # is set to true
-        #- name: OPENEBS_IO_JIVA_POOL_DIR
-        #  value: "/var/openebs"
+        - name: OPENEBS_IO_JIVA_POOL_DIR
+          value: "/var/lib/gravity/openebs"
         # OPENEBS_IO_LOCALPV_HOSTPATH_DIR can be used to specify the hostpath
         # to be used for default openebs-hostpath storageclass loaded by OpenEBS
         # The default path used is /var/openebs/local
         # This value takes effect only if OPENEBS_IO_CREATE_DEFAULT_STORAGE_CONFIG
         # is set to true
-        #- name: OPENEBS_IO_LOCALPV_HOSTPATH_DIR
-        #  value: "/var/openebs/local"
+        - name: OPENEBS_IO_LOCALPV_HOSTPATH_DIR
+          value: "/var/lib/gravity/openebs/local"
         - name: OPENEBS_IO_JIVA_CONTROLLER_IMAGE
-          value: "openebs/jiva:2.2.0"
+          value: "registry.local:5000/openebs/jiva:2.2.0"
         - name: OPENEBS_IO_JIVA_REPLICA_IMAGE
-          value: "openebs/jiva:2.2.0"
+          value: "registry.local:5000/openebs/jiva:2.2.0"
         - name: OPENEBS_IO_JIVA_REPLICA_COUNT
           value: "3"
         - name: OPENEBS_IO_CSTOR_TARGET_IMAGE
-          value: "openebs/cstor-istgt:2.2.0"
+          value: "registry.local:5000/openebs/cstor-istgt:2.2.0"
         - name: OPENEBS_IO_CSTOR_POOL_IMAGE
-          value: "openebs/cstor-pool:2.2.0"
+          value: "registry.local:5000/openebs/cstor-pool:2.2.0"
         - name: OPENEBS_IO_CSTOR_POOL_MGMT_IMAGE
-          value: "openebs/cstor-pool-mgmt:2.2.0"
+          value: "registry.local:5000/openebs/cstor-pool-mgmt:2.2.0"
         - name: OPENEBS_IO_CSTOR_VOLUME_MGMT_IMAGE
-          value: "openebs/cstor-volume-mgmt:2.2.0"
+          value: "registry.local:5000/openebs/cstor-volume-mgmt:2.2.0"
         - name: OPENEBS_IO_VOLUME_MONITOR_IMAGE
-          value: "openebs/m-exporter:2.2.0"
+          value: "registry.local:5000/openebs/m-exporter:2.2.0"
         - name: OPENEBS_IO_CSTOR_POOL_EXPORTER_IMAGE
-          value: "openebs/m-exporter:2.2.0"
+          value: "registry.local:5000/openebs/m-exporter:2.2.0"
         - name: OPENEBS_IO_HELPER_IMAGE
-          value: "openebs/linux-utils:2.2.0"
+          value: "registry.local:5000/openebs/linux-utils:2.2.0"
         # OPENEBS_IO_ENABLE_ANALYTICS if set to true sends anonymous usage
         # events to Google Analytics
         - name: OPENEBS_IO_ENABLE_ANALYTICS
-          value: "true"
+          value: "false"
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "openebs-operator"
         # OPENEBS_IO_ANALYTICS_PING_INTERVAL can be used to specify the duration (in hours)
@@ -276,8 +385,8 @@ spec:
       serviceAccountName: openebs-maya-operator
       containers:
       - name: openebs-provisioner
-        imagePullPolicy: IfNotPresent
-        image: openebs/openebs-k8s-provisioner:2.2.0
+        imagePullPolicy: Always
+        image: quay.io/openebs/openebs-k8s-provisioner:2.2.0
         env:
         # OPENEBS_IO_K8S_MASTER enables openebs provisioner to connect to K8s
         # based on this address. This is ignored if empty.
@@ -377,8 +486,8 @@ spec:
         #- name: OPENEBS_MAYA_SERVICE_NAME
         #  value: "maya-apiserver-apiservice"
         - name: snapshot-provisioner
-          image: openebs/snapshot-provisioner:2.2.0
-          imagePullPolicy: IfNotPresent
+          image: quay.io/openebs/snapshot-provisioner:2.2.0
+          imagePullPolicy: Always
           env:
           - name: OPENEBS_NAMESPACE
             valueFrom:
@@ -488,7 +597,7 @@ spec:
       #hostPID: true
       containers:
       - name: node-disk-manager
-        image: openebs/node-disk-manager:0.9.0
+        image: quay.io/openebs/node-disk-manager-amd64:0.9.0
         args:
           - -v=4
         # The feature-gate is used to enable the new UUID algorithm.
@@ -496,7 +605,7 @@ spec:
         # The feature gate is used to start the gRPC API service. The gRPC server
         # starts at 9115 port by default. This feature is currently in Alpha state
         # - --feature-gates="APIService"
-        imagePullPolicy: IfNotPresent
+        imagePullPolicy: Always
         securityContext:
           privileged: true
         volumeMounts:
@@ -512,9 +621,9 @@ spec:
         - name: devmount
           mountPath: /dev
         - name: basepath
-          mountPath: /var/openebs/ndm
+          mountPath: /var/lib/gravity/openebs/ndm
         - name: sparsepath
-          mountPath: /var/openebs/sparse
+          mountPath: /var/lib/gravity/openebs/sparse
         env:
         # namespace in which NDM is installed will be passed to NDM Daemonset
         # as environment variable
@@ -530,7 +639,7 @@ spec:
         # specify the directory where the sparse files need to be created.
         # if not specified, then sparse files will not be created.
         - name: SPARSE_FILE_DIR
-          value: "/var/openebs/sparse"
+          value: "/var/lib/gravity/openebs/sparse"
         # Size(bytes) of the sparse file to be created.
         - name: SPARSE_FILE_SIZE
           value: "10737418240"
@@ -566,11 +675,11 @@ spec:
           type: Directory
       - name: basepath
         hostPath:
-          path: /var/openebs/ndm
+          path: /var/lib/gravity/openebs/ndm
           type: DirectoryOrCreate
       - name: sparsepath
         hostPath:
-          path: /var/openebs/sparse
+          path: /var/lib/gravity/openebs/sparse
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -600,7 +709,7 @@ spec:
       containers:
         - name: node-disk-operator
           image: openebs/node-disk-operator:0.9.0
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           readinessProbe:
             exec:
               command:
@@ -626,7 +735,7 @@ spec:
             - name: OPERATOR_NAME
               value: "node-disk-operator"
             - name: CLEANUP_JOB_IMAGE
-              value: "openebs/linux-utils:2.2.0"
+              value: "registry.local:5000/openebs/linux-utils:2.2.0"
             # OPENEBS_IO_INSTALL_CRD environment variable is used to enable/disable CRD installation
             # from NDM operator. By default the CRDs will be installed
             #- name: OPENEBS_IO_INSTALL_CRD
@@ -669,8 +778,8 @@ spec:
       serviceAccountName: openebs-maya-operator
       containers:
         - name: admission-webhook
-          image: openebs/admission-server:2.2.0
-          imagePullPolicy: IfNotPresent
+          image: quay.io/openebs/admission-server:2.2.0
+          imagePullPolicy: Always
           args:
             - -alsologtostderr
             - -v=2
@@ -726,8 +835,8 @@ spec:
       serviceAccountName: openebs-maya-operator
       containers:
       - name: openebs-provisioner-hostpath
-        imagePullPolicy: IfNotPresent
-        image: openebs/provisioner-localpv:2.2.0
+        imagePullPolicy: Always
+        image: quay.io/openebs/provisioner-localpv:2.2.0
         env:
         # OPENEBS_IO_K8S_MASTER enables openebs provisioner to connect to K8s
         # based on this address. This is ignored if empty.
@@ -758,7 +867,7 @@ spec:
         - name: OPENEBS_IO_INSTALLER_TYPE
           value: "openebs-operator"
         - name: OPENEBS_IO_HELPER_IMAGE
-          value: "openebs/linux-utils:2.2.0"
+          value: "registry.local:5000/openebs/linux-utils:2.2.0"
         # LEADER_ELECTION_ENABLED is used to enable/disable leader election. By default
         # leader election is enabled.
         #- name: LEADER_ELECTION_ENABLED
