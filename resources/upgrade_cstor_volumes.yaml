@@ -11,11 +11,14 @@ metadata:
   #the following convention: cstor-vol-<flattened-from-to-versions>
   name: cstor-vol-1120210
 
-  #VERIFY the value of namespace is same as the namespace where openebs components
+  #VERIFY the value of namespace is same as the namespace
+  # where openebs components
   # are installed. You can verify using the command:
-  # `kubectl get pods -n <openebs-namespace> -l openebs.io/component-name=maya-apiserver`
+  # `kubectl get pods -n <openebs-namespace> -l
+  # openebs.io/component-name=maya-apiserver`
   # The above command should return status of the openebs-apiserver.
   namespace: openebs
+
 
 spec:
   backoffLimit: 4
@@ -26,38 +29,37 @@ spec:
       # by running `kubectl get sa -n <openebs-namespace>`
       serviceAccountName: openebs-maya-operator
       containers:
-        - name:  upgrade
-  args:
-    - "cstor-volume"
+        - name: upgrade
+          args:
+            - "cstor-volume"
 
-    # --from-version is the current version of the volume
-    - "--from-version=1.7.0"
+            # --from-version is the current version of the volume
+            - "--from-version=1.7.0"
 
-    # --to-version is the version desired upgrade version
-    - "--to-version=2.2.0"
+            # --to-version is the version desired upgrade version
+            - "--to-version=2.2.0"
 
-  # Bulk upgrade is supported from 1.9
-  # To make use of it, please provide the list of PVs
-  # as mentioned below
-  #- "pvc-c630f6d5-afd2-11e9-8e79-42010a800065"
-  #- "pvc-a4aba0e9-8ad3-4d18-9b34-5e6e7cea2eb3"
-  CSTOR_VOLUMES
+            # Bulk upgrade is supported from 1.9
+            # To make use of it, please provide the list of PVs
+            # as mentioned below
+            - "pvc-c630f6d5-afd2-11e9-8e79-42010a800065"
+            - "pvc-a4aba0e9-8ad3-4d18-9b34-5e6e7cea2eb3"
+            #CSTOR_VOLUMES
 
+            #Following are optional parameters
+            #Log Level
+            - "--v=4"
+          #DO NOT CHANGE BELOW PARAMETERS
+          env:
+            - name: OPENEBS_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          tty: true
 
-  #Following are optional parameters
-  #Log Level
-  - "--v=4"
-  #DO NOT CHANGE BELOW PARAMETERS
-  env:
-    - name: OPENEBS_NAMESPACE
-      valueFrom:
-        fieldRef:
-          fieldPath: metadata.namespace
-  tty: true
-
-  # the image version should be same as the --to-version mentioned above
-  # in the args of the job
-  image: openebs/m-upgrade:2.2.0
-  imagePullPolicy: Always
-  restartPolicy: OnFailure
+          # the image version should be same as the --to-version mentioned above
+          # in the args of the job
+          image: quay.io/openebs/m-upgrade:2.2.0
+          imagePullPolicy: Always
+      restartPolicy: OnFailure
 ---

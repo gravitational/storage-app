@@ -25,7 +25,7 @@ spec:
       # by running `kubectl get sa -n <openebs-namespace>`
       serviceAccountName: openebs-maya-operator
       containers:
-        - name:  upgrade
+        - name: upgrade
           args:
             - "cstor-spc"
 
@@ -40,7 +40,7 @@ spec:
             # as mentioned below
             #- "cstor-sparse-pool"
             #- "cstor-disk-pool"
-            CSTOR_POOLS
+            #CSTOR_POOLS
 
             #Following are optional parameters
             #Log Level

@@ -11,9 +11,11 @@ metadata:
   #the following convention: jiva-vol-<flattened-from-to-versions>
   name: jiva-vol-1120210
 
-  #VERIFY the value of namespace is same as the namespace where openebs components
+  #VERIFY the value of namespace is same as the namespace where
+  # openebs components
   # are installed. You can verify using the command:
-  # `kubectl get pods -n <openebs-namespace> -l openebs.io/component-name=maya-apiserver`
+  # `kubectl get pods -n <openebs-namespace> -l
+  # openebs.io/component-name=maya-apiserver`
   # The above command should return status of the openebs-apiserver.
   namespace: openebs
 
@@ -26,7 +28,7 @@ spec:
       # by running `kubectl get sa -n <openebs-namespace>`
       serviceAccountName: openebs-maya-operator
       containers:
-        - name:  upgrade
+        - name: upgrade
           args:
             - "jiva-volume"
 

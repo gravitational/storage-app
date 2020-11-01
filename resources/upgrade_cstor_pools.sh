@@ -14,7 +14,7 @@ cStorPools=$(<cstor_pools3.txt)
 #echo "---> ${cStorPools} "
 #exit
 
-  cStorPoolsStrToReplace="CSTOR_POOLS"
+  cStorPoolsStrToReplace="#CSTOR_POOLS"
   while IFS= read -r line; do
     echo "${line//$cStorPoolsStrToReplace/$cStorPools}"
   done < upgrade_cstor_pools.yaml

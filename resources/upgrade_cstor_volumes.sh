@@ -18,7 +18,7 @@ cStorVolumes=$(<cstor_volumes3.txt)
 #echo "---> ${cStorVolumes} "
 #exit
 
-  cStorVolumesStrToReplace="CSTOR_VOLUMES"
+  cStorVolumesStrToReplace="#CSTOR_VOLUMES"
   while IFS= read -r line; do
     echo "${line//$cStorVolumesStrToReplace/$cStorVolumes}"
   done < upgrade_cstor_volumes.yaml
