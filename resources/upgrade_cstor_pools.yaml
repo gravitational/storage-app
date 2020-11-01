@@ -30,7 +30,7 @@ spec:
             - "cstor-spc"
 
             # --from-version is the current version of the pool
-            - "--from-version=1.12.0"
+            - "--from-version=1.7.0"
 
             # --to-version is the version desired upgrade version
             - "--to-version=2.2.0"
@@ -38,8 +38,9 @@ spec:
             # Bulk upgrade is supported
             # To make use of it, please provide the list of SPCs
             # as mentioned below
-            - "cstor-sparse-pool"
-            - "cstor-disk-pool"
+            #- "cstor-sparse-pool"
+            #- "cstor-disk-pool"
+            CSTOR_POOLS
 
             #Following are optional parameters
             #Log Level
@@ -54,7 +55,7 @@ spec:
 
           # the image version should be same as the --to-version mentioned above
           # in the args of the job
-          image: openebs/m-upgrade:2.2.0
+          image: quay.io/openebs/m-upgrade:2.2.0
           imagePullPolicy: Always
       restartPolicy: OnFailure
 ---
