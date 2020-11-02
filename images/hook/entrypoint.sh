@@ -61,18 +61,11 @@ if [ $1 = "update" ]; then
   #kubectl logs -n openebs jiva-upg-1120210-bgrhx
 
   echo "--> check if cStor is used and generate upgrade script for the cStor pools:"
-  /var/lib/gravity/resources/upgrade_cstor_yaml.sh > /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
+  /var/lib/gravity/resources/upgrade_cstor_pools.sh > /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
   rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools2.yaml --debug
-  # to check the version
-  #  sudo kubectl describe spc
-  # display version:
   kubectl describe spc | grep Current
 
   echo "--> Upgrade cStor Volumes"
-  # Extract the PV name
-  #kubectl get pv # TODO parse output
-  #kubectl apply -f cstor-vol-2.2.0.yaml
-  #rig upsert -f /var/lib/gravity/resources/cstor-vol-2.2.0.yaml --debug
   /var/lib/gravity/resources/upgrade_cstor_volumes.sh > /var/lib/gravity/resources/upgrade_cstor_volumes.yaml
   rig upsert -f /var/lib/gravity/resources/upgrade_cstor_volumes.yaml --debug
 
