@@ -6,7 +6,7 @@
 
 
 
-kubectl get pv | cut -d" " -f1 | tail -n +2 >cstor_volumes.txt
+kubectl get pv | grep -i cstor | cut -d" " -f1 >cstor_volumes.txt
 sed 's/[^[:space:],]\+/"&"/g' cstor_volumes.txt > cstor_volumes2.txt
 cat cstor_volumes2.txt | prepend "- " > cstor_volumes3.txt
 
