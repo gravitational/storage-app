@@ -21,4 +21,4 @@ cStorVolumes=$(<cstor_volumes3.txt)
   cStorVolumesStrToReplace="#CSTOR_VOLUMES"
   while IFS= read -r line; do
     echo "${line//$cStorVolumesStrToReplace/$cStorVolumes}"
-  done < upgrade_cstor_volumes.yaml
+  done < /var/lib/gravity/resources/upgrade_cstor_volumes.yaml

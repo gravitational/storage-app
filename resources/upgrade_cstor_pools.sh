@@ -17,4 +17,4 @@ cStorPools=$(<cstor_pools3.txt)
   cStorPoolsStrToReplace="#CSTOR_POOLS"
   while IFS= read -r line; do
     echo "${line//$cStorPoolsStrToReplace/$cStorPools}"
-  done < upgrade_cstor_pools.yaml
+  done < /var/lib/gravity/resources/upgrade_cstor_pools.yaml
