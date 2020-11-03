@@ -4,6 +4,12 @@ set -eu
 
 echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
 
+is_file_empty_or_missing() {
+    [[ ! -f "${1}" || ! -s "${1}" ]] && return 0 || return 1
+}
+
+
+
 if [ $1 = "update" ]; then
 
   echo "--> Checking: $RIG_CHANGESET"
@@ -62,12 +68,34 @@ if [ $1 = "update" ]; then
 
   echo "--> check if cStor is used and generate upgrade script for the cStor pools:"
   /bin/bash /var/lib/gravity/resources/upgrade_cstor_pools.sh > /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
-  rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools2.yaml --debug
-  kubectl describe spc | grep Current
 
-  echo "--> Upgrade cStor Volumes"
-  /bin/bash /var/lib/gravity/resources/upgrade_cstor_volumes.sh > /var/lib/gravity/resources/upgrade_cstor_volumes.yaml
-  rig upsert -f /var/lib/gravity/resources/upgrade_cstor_volumes.yaml --debug
+if ! is_file_empty_or_missing /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
+ then
+    echo "--> Found cStor pools. Upgrading..."
+    echo "version of cStor pools before upgrade:"
+    kubectl describe spc | grep Current
+   # kubectl apply -f  ./upgrade_cstor_pools2.yaml
+    rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools2.yaml --debug
+    echo "version of cStor pools after upgrade:"
+    kubectl describe spc | grep Current
+    echo "Successfully upgraded cStor pools. "
+ else
+     echo "Did not find cStor pools."
+fi
+
+
+echo "--> Upgrade cStor Volumes"
+/bin/bash /var/lib/gravity/resources/upgrade_cstor_volumes.sh > /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml
+if ! is_file_empty_or_missing /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml
+then
+      echo "--> Found cStor volumes. Upgrading..."
+      #kubectl apply  -f ./upgrade_cstor_volumes2.yaml
+      rig upsert -f /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml --debug
+      echo "Successfully upgraded cStor volumes. "
+else
+    echo "Did not find cStor volumes."
+fi
+
 
   echo "--> Checking status"
   rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug

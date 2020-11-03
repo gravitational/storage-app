@@ -7,14 +7,7 @@
 #set -v -x -e
 
 kubectl get spc -A | cut -d" " -f1 | tail -n +2 >cstor_pools.txt
-if [ -s cstor_pools.txt ]
-then
-    echo "found cStor pools:"
-    cat cstor_pools.txt
-else
-  echo "Unable to find any cStor Pools."
-  exit 0
-fi
+[ -s cstor_pools.txt ] || exit 0
 
 
 sed 's/[^[:space:],]\+/"&"/g' cstor_pools.txt > cstor_pools2.txt

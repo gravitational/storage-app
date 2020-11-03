@@ -7,14 +7,7 @@
 
 
 kubectl get pv | grep -i cstor | cut -d" " -f1 >cstor_volumes.txt
-if [ -s cstor_volumes.txt ]
-then
-    echo "found cStor volumes:"
-    cat cstor_volumes.txt
-else
-  echo "Unable to find any cStor volumes."
-  exit 0
-fi
+[ -s cstor_volumes.txt ] || exit 0
 
 sed 's/[^[:space:],]\+/"&"/g' cstor_volumes.txt > cstor_volumes2.txt
 cat cstor_volumes2.txt | prepend "- " > cstor_volumes3.txt
