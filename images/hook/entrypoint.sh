@@ -17,11 +17,15 @@ if [ $1 = "update" ]; then
     exit 0
   fi
 
-  # Step 1(Prerequisites) of the upgrade process described at:
-  # https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md
-  # Check versions of the existing components:
-  # TODO get the old version value (1.12.0) from somewhere and verify that it is bigger than 1.0.0
-  # kubectl get pods -n openebs -l openebs.io/version=1.7.0
+  echo " Step 1(Prerequisites) of the upgrade process described at: https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md "
+  #
+  echo " Checking the version of the existing control plane:"
+  kubectl get pods -n openebs -l openebs.io/version=1.7.0 | grep 'maya-apiserver.*Running' >/dev/null
+  if [ $? != 0 ]; then
+    echo "Unable to upgrade the control plane because unable to find a running maya-apiserver of expected version 1.7.0."
+    exit 1
+  fi
+
 
   echo "--> Starting upgrade, changeset: $RIG_CHANGESET"
   rig cs delete --force -c cs/${RIG_CHANGESET}
@@ -47,13 +51,13 @@ if [ $1 = "update" ]; then
 
   kubectl get pods -n openebs -l openebs.io/version=2.2.0 | grep 'maya-apiserver.*Running' >/dev/null
   if [ $? != 0 ]; then
-    echo "Unable to upgrade the control plane. Maya server not running."
+    echo "Failed to upgrade the control plane. Maya server not running."
     exit 1
   fi
 
   kubectl get pods -n openebs -l openebs.io/version=2.2.0 | grep 'openebs-admission-server.*Running' >/dev/null
   if [ $? != 0 ]; then
-    echo "Unable to upgrade the control plane. Admission server not running."
+    echo "Failed to upgrade the control plane. Admission server not running."
     exit 2
   fi
 

@@ -6,6 +6,14 @@
 
 #set -v -x -e
 
+# check that we have the expected version
+kubectl describe spc | grep Current > cstor_pool_version.txt
+if ! grep -q 1.7.0 cstor_pool_version.txt; then
+  # expected cStor pool version not found
+  exit 3
+fi
+
+
 kubectl get spc -A | cut -d" " -f1 | tail -n +2 >cstor_pools.txt
 [ -s cstor_pools.txt ] || exit 0
 
