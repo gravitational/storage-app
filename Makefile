@@ -1,6 +1,7 @@
 REPOSITORY := gravitational.io
 NAME := storage-app
-VERSION ?= $(shell git describe --tags)
+#VERSION ?= $(shell git describe --tags)
+VERSION = 0.0.4
 OUT_DIR ?= $(shell pwd)/build
 OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
 GRAVITY ?= gravity
