@@ -9,13 +9,17 @@
 # check that we have the expected version
 kubectl describe spc | grep Current > cstor_pool_version.txt
 if ! grep -q 1.7.0 cstor_pool_version.txt; then
-  # expected cStor pool version not found
+  echo " expected cStor pool version 1.7.0 not found " >> storage-app-upgrade.log
   exit 3
 fi
 
 
 kubectl get spc -A | cut -d" " -f1 | tail -n +2 >cstor_pools.txt
-[ -s cstor_pools.txt ] || exit 0
+if [ ! -s cstor_pools.txt ]
+ then
+    echo " unable to find storage pool claims " >> storage-app-upgrade.log
+   exit 0
+fi
 
 
 sed 's/[^[:space:],]\+/"&"/g' cstor_pools.txt > cstor_pools2.txt

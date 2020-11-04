@@ -100,6 +100,8 @@ else
     echo "Did not find cStor volumes."
 fi
 
+    echo " Log file: "
+    cat storage-app-upgrade.log
 
   echo "--> Checking status"
   rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug

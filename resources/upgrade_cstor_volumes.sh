@@ -7,7 +7,11 @@
 
 
 kubectl get pv | grep -i cstor | cut -d" " -f1 >cstor_volumes.txt
-[ -s cstor_volumes.txt ] || exit 0
+if [ ! -s cstor_volumes.txt ]
+ then
+    echo " unable to find storage volumes " >> storage-app-upgrade.log
+   exit 0
+fi
 
 sed 's/[^[:space:],]\+/"&"/g' cstor_volumes.txt > cstor_volumes2.txt
 cat cstor_volumes2.txt | prepend "- " > cstor_volumes3.txt
