@@ -15,7 +15,8 @@ get_control_plane_version() {
 
 check_control_plane() {
   echo "Checking control plane for version=$1"
-  kubectl get pods -n openebs -l openebs.io/version=$1 >control_plane_components.txt
+  kubectl get pods -n openebs -l openebs.io/version=$1 > control_plane_components.txt
+  # TODO control plane file name to be declared in a variable
 
   echo "Found control plane components:"
   cat control_plane_components.txt
@@ -70,8 +71,7 @@ if [ $1 = "update" ]; then
 
   if [ "$FROM_VERSION" != "$TO_VERSION" ]; then
     echo "Performing control plane upgrade TO_VERSION=$TO_VERSION..."
-    #    rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
-    kubectl apply -f openebs-operator_2.2.0.yaml
+    rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
     if [ $? -eq 0 ]; then
       echo "Rig upsert openebs-operator successfull."
     else
