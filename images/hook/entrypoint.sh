@@ -4,11 +4,30 @@ set -eu
 
 echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
 
-is_file_empty_or_missing() {
-    [[ ! -f "${1}" || ! -s "${1}" ]] && return 0 || return 1
+TO_VERSION=2.2.0
+
+get_control_plane_version() {
+  MAYA_POD=$(sudo kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
+  VERSION=$(sudo kubectl exec -it ${MAYA_POD} mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
+
+  echo $VERSION
 }
 
+check_control_plane() {
+  echo "Checking control plane for version=$1"
+  kubectl get pods -n openebs -l openebs.io/version=$1 >control_plane_components.txt
 
+  echo "Found control plane components:"
+  cat control_plane_components.txt
+
+  grep 'provisioner.*Running' control_plane_components.txt >/dev/null &&
+    grep 'admission-server.*Running' control_plane_components.txt >/dev/null &&
+    grep 'maya-apiserver.*Running' control_plane_components.txt >/dev/null &&
+    grep 'ndm.*Running' control_plane_components.txt >/dev/null &&
+    grep 'snapshot-operator.*Running' control_plane_components.txt >/dev/null
+
+  return $?
+}
 
 if [ $1 = "update" ]; then
 
@@ -17,18 +36,8 @@ if [ $1 = "update" ]; then
     exit 0
   fi
 
-  echo " Step 1(Prerequisites) of the upgrade process described at: https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md "
-  #
-  echo " Checking the version of the existing control plane:"
-  kubectl get pods -n openebs -l openebs.io/version=1.7.0 | grep 'maya-apiserver.*Running' >/dev/null
-  if [ $? != 0 ]; then
-    echo "Unable to upgrade the control plane because unable to find a running maya-apiserver of expected version 1.7.0."
-    exit 1
-  fi
-
-
   echo "--> Starting upgrade, changeset: $RIG_CHANGESET"
-  rig cs delete --force -c cs/${RIG_CHANGESET}
+  #rig cs delete --force -c cs/${RIG_CHANGESET}
 
   # TODO(r0mant): As this is the first release of OpenEBS as a Gravity application,
   #               the current "upgrade" procedure assumes that OpenEBS is not
@@ -38,70 +47,52 @@ if [ $1 = "update" ]; then
   #               for OpenEBS components and its pools/volumes like described in
   #               https://github.com/openebs/openebs/tree/master/k8s/upgrades.
 
-  echo "--> Creating/updating OpenEBS resources for control plane"
-  #rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug
-  #kubectl apply -f https://openebs.github.io/charts/2.2.0/openebs-operator.yaml
-  # kubectl apply -f ./openebs-operator_2.2.0.yaml
-  rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
+  echo "Starting the control plane upgrade process as described at:"
+  echo "https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md"
 
-  echo "--> verify that the control plane is in the desired status"
-  listPods=$(kubectl get pods -n openebs -l openebs.io/version=2.2.0)
-  echo "Pods after upgrade-> $listPods"
-  # TODO parse the output to verify that the version is correct
-
-  kubectl get pods -n openebs -l openebs.io/version=2.2.0 | grep 'maya-apiserver.*Running' >/dev/null
-  if [ $? != 0 ]; then
-    echo "Failed to upgrade the control plane. Maya server not running."
-    exit 1
+  echo "Checking the exising control plane version..."
+  FROM_VERSION=$(get_control_plane_version)
+  if [[ "$FROM_VERSION" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
+    if [ "$FROM_VERSION" == "$TO_VERSION" ]; then
+      echo "The control plane is already upgraded TO_VERSION=$TO_VERSION."
+    else
+      if [ "$FROM_VERSION" == "1.4.0" ] || [ "$FROM_VERSION" == "1.5.0" ] || [ "$FROM_VERSION" == "1.7.0" ]; then
+        echo "Found control plane components of expected FROM_VERSION=$FROM_VERSION."
+      else
+        echo "Exiting because unable to find expected control plane components FROM_VERSION. Got: '$FROM_VERSION'."
+        exit 4
+      fi
+    fi
+  else
+    echo "Exiting because unable to retrieve existing control plane version. Got: '$FROM_VERSION'."
+    exit 7
   fi
 
-  kubectl get pods -n openebs -l openebs.io/version=2.2.0 | grep 'openebs-admission-server.*Running' >/dev/null
-  if [ $? != 0 ]; then
-    echo "Failed to upgrade the control plane. Admission server not running."
-    exit 2
+  if [ "$FROM_VERSION" != "$TO_VERSION" ]; then
+    echo "Performing control plane upgrade TO_VERSION=$TO_VERSION..."
+    #    rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
+    kubectl apply -f openebs-operator_2.2.0.yaml
+    if [ $? -eq 0 ]; then
+      echo "Rig upsert openebs-operator successfull."
+    else
+      echo "Failed rig upsert openebs-operator. Exiting."
+      exit $?
+    fi
+
+    for i in {1..7}; do
+      sleep 30s
+
+      if check_control_plane $TO_VERSION; then
+        echo "Successfully upgraded the control plane components TO_VERSION=$TO_VERSION."
+        exit 0
+      else
+        echo "The control plane is still not upgraded, wait loop count=$i."
+      fi
+    done
+
+    echo "Failed to upgrade the control plane after several attempts. Exiting."
+    exit 8
   fi
-
-  echo "--> upgrade Jiva volumes if used:"
-  #kubectl get pv  # TODO parse output
-  #kubectl apply -f jiva-vol-2.2.0.yaml
-  #rig upsert -f /var/lib/gravity/resources/jiva-vol-2.2.0.yaml --debug
-  # check the Jiva volume update status
-  #kubectl get job -n openebs
-  #kubectl get pods -n openebs #to check on the name for the job pod
-  #kubectl logs -n openebs jiva-upg-1120210-bgrhx
-
-  echo "--> check if cStor is used and generate upgrade script for the cStor pools:"
-  /bin/bash /var/lib/gravity/resources/upgrade_cstor_pools.sh > /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
-
-if ! is_file_empty_or_missing /var/lib/gravity/resources/upgrade_cstor_pools2.yaml
- then
-    echo "--> Found cStor pools. Upgrading..."
-    echo "version of cStor pools before upgrade:"
-    kubectl describe spc | grep Current
-   # kubectl apply -f  ./upgrade_cstor_pools2.yaml
-    rig upsert -f /var/lib/gravity/resources/upgrade_cstor_pools2.yaml --debug
-    echo "version of cStor pools after upgrade:"
-    kubectl describe spc | grep Current
-    echo "Successfully upgraded cStor pools. "
- else
-     echo "Did not find cStor pools."
-fi
-
-
-echo "--> Upgrade cStor Volumes"
-/bin/bash /var/lib/gravity/resources/upgrade_cstor_volumes.sh > /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml
-if ! is_file_empty_or_missing /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml
-then
-      echo "--> Found cStor volumes. Upgrading..."
-      #kubectl apply  -f ./upgrade_cstor_volumes2.yaml
-      rig upsert -f /var/lib/gravity/resources/upgrade_cstor_volumes2.yaml --debug
-      echo "Successfully upgraded cStor volumes. "
-else
-    echo "Did not find cStor volumes."
-fi
-
-    echo " Log file: "
-    cat storage-app-upgrade.log
 
   echo "--> Checking status"
   rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug
