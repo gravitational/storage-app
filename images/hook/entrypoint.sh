@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 set -eu
 
@@ -15,7 +15,7 @@ get_control_plane_version() {
 
 check_control_plane() {
   echo "Checking control plane for version=$1"
-  kubectl get pods -n openebs -l openebs.io/version=$1 > control_plane_components.txt
+  kubectl get pods -n openebs -l openebs.io/version="$1" > control_plane_components.txt
   # TODO control plane file name to be declared in a variable
 
   echo "Found control plane components:"
@@ -30,7 +30,7 @@ check_control_plane() {
   return $?
 }
 
-if [ $1 = "update" ]; then
+if [ "$1" = "update" ]; then
 
   echo "--> Checking: $RIG_CHANGESET"
   if rig status "${RIG_CHANGESET}" --retry-attempts=1 --retry-period=1s; then
@@ -71,10 +71,8 @@ if [ $1 = "update" ]; then
 
   if [ "$FROM_VERSION" != "$TO_VERSION" ]; then
     echo "Performing control plane upgrade TO_VERSION=$TO_VERSION..."
-    rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
-    if [ $? -eq 0 ]; then
-      echo "Rig upsert openebs-operator successful."
-    else
+    if ! rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug;
+    then
       echo "Failed rig upsert openebs-operator. Exiting."
       exit $?
     fi
@@ -100,11 +98,11 @@ if [ $1 = "update" ]; then
   echo "--> Freezing"
   rig freeze
 
-elif [ $1 = "rollback" ]; then
+elif [ "$1" = "rollback" ]; then
 
   echo "--> Reverting changeset $RIG_CHANGESET"
   rig revert
-  rig cs delete --force -c cs/${RIG_CHANGESET}
+  rig cs delete --force -c "cs/${RIG_CHANGESET}"
 
 else
 
