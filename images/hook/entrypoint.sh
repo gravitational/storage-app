@@ -8,9 +8,9 @@ TO_VERSION=2.2.0
 
 get_control_plane_version() {
   MAYA_POD=$(sudo kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
-  VERSION=$(sudo kubectl exec -it ${MAYA_POD} mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
+  VERSION=$(sudo kubectl exec -it "${MAYA_POD}" mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
 
-  echo $VERSION
+  echo "$VERSION"
 }
 
 check_control_plane() {
@@ -33,7 +33,7 @@ check_control_plane() {
 if [ $1 = "update" ]; then
 
   echo "--> Checking: $RIG_CHANGESET"
-  if rig status ${RIG_CHANGESET} --retry-attempts=1 --retry-period=1s; then
+  if rig status "${RIG_CHANGESET}" --retry-attempts=1 --retry-period=1s; then
     exit 0
   fi
 
@@ -51,7 +51,7 @@ if [ $1 = "update" ]; then
   echo "Starting the control plane upgrade process as described at:"
   echo "https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md"
 
-  echo "Checking the exising control plane version..."
+  echo "Checking the existing control plane version..."
   FROM_VERSION=$(get_control_plane_version)
   if [[ "$FROM_VERSION" =~ ^[0-9]+.[0-9]+.[0-9]+$ ]]; then
     if [ "$FROM_VERSION" == "$TO_VERSION" ]; then
@@ -73,7 +73,7 @@ if [ $1 = "update" ]; then
     echo "Performing control plane upgrade TO_VERSION=$TO_VERSION..."
     rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug
     if [ $? -eq 0 ]; then
-      echo "Rig upsert openebs-operator successfull."
+      echo "Rig upsert openebs-operator successful."
     else
       echo "Failed rig upsert openebs-operator. Exiting."
       exit $?
@@ -95,7 +95,7 @@ if [ $1 = "update" ]; then
   fi
 
   echo "--> Checking status"
-  rig status ${RIG_CHANGESET} --retry-attempts=120 --retry-period=1s --debug
+  rig status "${RIG_CHANGESET}" --retry-attempts=120 --retry-period=1s --debug
 
   echo "--> Freezing"
   rig freeze
