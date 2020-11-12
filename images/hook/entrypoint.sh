@@ -7,16 +7,17 @@ echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
 TO_VERSION=2.2.0
 
 function get_control_plane_version() {
-  MAYA_POD=$(sudo kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
-  VERSION=$(sudo kubectl exec -it "${MAYA_POD}" mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
+  MAYA_POD=$(kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
+  VERSION=$(kubectl exec -it "${MAYA_POD}" mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
 
   echo "$VERSION"
 }
 
 function check_control_plane() {
   echo "Checking control plane for version=$1"
-  kubectl get pods -n openebs -l openebs.io/version="$1" > control_plane_components.txt
   # TODO control plane file name to be declared in a variable
+  kubectl get pods -n openebs -l openebs.io/version="$1" > control_plane_components.txt
+
 
   echo "Found control plane components:"
   cat control_plane_components.txt
