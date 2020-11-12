@@ -2,7 +2,7 @@
 
 set -eu
 
-echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
+echo "---> Assuming changeset from the environment: $RIG_CHANGESET"
 
 TO_VERSION=2.2.0
 
