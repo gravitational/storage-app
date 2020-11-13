@@ -7,6 +7,7 @@ echo "---> Assuming changeset from the environment: $RIG_CHANGESET"
 TO_VERSION=2.2.0
 
 function get_control_plane_version() {
+  # TODO get the version in a better way. See NOTES.org for getting the version of volumes
   MAYA_POD=$(kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
   VERSION=$(kubectl exec -it "${MAYA_POD}" mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
 
@@ -39,15 +40,6 @@ if [ "$1" = "update" ]; then
   fi
 
   echo "--> Starting upgrade, changeset: $RIG_CHANGESET"
-  #rig cs delete --force -c cs/${RIG_CHANGESET}
-
-  # TODO(r0mant): As this is the first release of OpenEBS as a Gravity application,
-  #               the current "upgrade" procedure assumes that OpenEBS is not
-  #               yet installed and thus just creates all OpenEBS resources
-  #               from scratch.
-  #               In the future, we'll need to develop a proper upgrade procedure
-  #               for OpenEBS components and its pools/volumes like described in
-  #               https://github.com/openebs/openebs/tree/master/k8s/upgrades.
 
   echo "Starting the control plane upgrade process as described at:"
   echo "https://github.com/openebs/openebs/blob/master/k8s/upgrades/README.md"
@@ -101,9 +93,13 @@ if [ "$1" = "update" ]; then
 
 elif [ "$1" = "rollback" ]; then
 
-  echo "--> Reverting changeset $RIG_CHANGESET"
-  rig revert
-  rig cs delete --force -c "cs/${RIG_CHANGESET}"
+  echo "--> Skipping reverting changeset $RIG_CHANGESET because rollback is not supported by OpenEBS"
+  # OpenEBS doesn't support the concept of a rollback. The following is from the Slack channel of the OpenEBS team:
+  # "So I was discussing this with the team and there were some major breaking changes
+  # in the control plane in 2.0.0 version also some data plane changes except the image and labels.
+  # This can make the rollback difficult."
+  # "The labels will come back but the blockdevices have paths that may have changed in the upgrade from 1.7.0 to 2.2.0 which will not work now"
+  # "The rollback is not recommended by openebs"
 
 else
 
