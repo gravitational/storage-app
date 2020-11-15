@@ -64,7 +64,7 @@ if [ "$1" = "update" ]; then
 
   if [ "$FROM_VERSION" != "$TO_VERSION" ]; then
     echo "Performing control plane upgrade TO_VERSION=$TO_VERSION..."
-    if ! rig upsert -f /var/lib/gravity/resources/openebs-operator_2.2.0.yaml --debug;
+    if ! rig upsert -f /var/lib/gravity/resources/openebs-operator.yaml --debug;
     then
       echo "Failed rig upsert openebs-operator. Exiting."
       exit $?
