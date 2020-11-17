@@ -7,27 +7,27 @@ echo "---> Assuming changeset from the environment: $RIG_CHANGESET"
 TO_VERSION=2.2.0
 
 function get_control_plane_version() {
-  # TODO get the version in a better way. See NOTES.org for getting the version of volumes
   MAYA_POD=$(kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
   VERSION=$(kubectl exec -it "${MAYA_POD}" mayactl version -nopenebs | grep ^Version | cut -d" " -f2 | perl -pe's/(\d+.\d+.\d+).*/$1/')
 
   echo "$VERSION"
 }
 
+# Verifies that the control plane components are of the expected version
 function check_control_plane() {
   echo "Checking control plane for version=$1"
-  # TODO control plane file name to be declared in a variable
-  kubectl get pods -n openebs -l openebs.io/version="$1" > control_plane_components.txt
 
+  CONTROL_PLANE_COMPONENTS=control_plane_components.txt
+  kubectl get pods -n openebs -l openebs.io/version="$1" > $CONTROL_PLANE_COMPONENTS
 
   echo "Found control plane components:"
-  cat control_plane_components.txt
+  cat $CONTROL_PLANE_COMPONENTS
 
-  grep 'provisioner.*Running' control_plane_components.txt >/dev/null &&
-    grep 'admission-server.*Running' control_plane_components.txt >/dev/null &&
-    grep 'maya-apiserver.*Running' control_plane_components.txt >/dev/null &&
-    grep 'ndm.*Running' control_plane_components.txt >/dev/null &&
-    grep 'snapshot-operator.*Running' control_plane_components.txt >/dev/null
+  grep 'provisioner.*Running' $CONTROL_PLANE_COMPONENTS >/dev/null &&
+    grep 'admission-server.*Running' $CONTROL_PLANE_COMPONENTS >/dev/null &&
+    grep 'maya-apiserver.*Running' $CONTROL_PLANE_COMPONENTS >/dev/null &&
+    grep 'ndm.*Running' $CONTROL_PLANE_COMPONENTS >/dev/null &&
+    grep 'snapshot-operator.*Running' $CONTROL_PLANE_COMPONENTS >/dev/null
 
   return $?
 }
@@ -54,12 +54,12 @@ if [ "$1" = "update" ]; then
         echo "Found control plane components of expected FROM_VERSION=$FROM_VERSION."
       else
         echo "Exiting because unable to find expected control plane components FROM_VERSION. Got: '$FROM_VERSION'."
-        exit 4
+        exit 1
       fi
     fi
   else
     echo "Exiting because unable to retrieve existing control plane version. Got: '$FROM_VERSION'."
-    exit 7
+    exit 2
   fi
 
   if [ "$FROM_VERSION" != "$TO_VERSION" ]; then
@@ -82,7 +82,7 @@ if [ "$1" = "update" ]; then
     done
 
     echo "Failed to upgrade the control plane after several attempts. Exiting."
-    exit 8
+    exit 3
   fi
 
   echo "--> Checking status"
@@ -93,16 +93,21 @@ if [ "$1" = "update" ]; then
 
 elif [ "$1" = "rollback" ]; then
 
-  echo "--> Skipping reverting changeset $RIG_CHANGESET because rollback is not supported by OpenEBS"
-  # OpenEBS doesn't support the concept of a rollback. The following is from the Slack channel of the OpenEBS team:
+  echo "--> Skipping reverting changeset $RIG_CHANGESET because rollback is not supported for the current version"
+  # OpenEBS doesn't recommend a rollback because of a breaking changes. The following is from the Slack channel of the OpenEBS team:
   # "So I was discussing this with the team and there were some major breaking changes
   # in the control plane in 2.0.0 version also some data plane changes except the image and labels.
   # This can make the rollback difficult."
   # "The labels will come back but the blockdevices have paths that may have changed in the upgrade from 1.7.0 to 2.2.0 which will not work now"
   # "The rollback is not recommended by openebs"
+  #
+  # Rolling back from 2.2.0-2.0.0 is perfectly possible.
+  # But from 2.0.0 to 1.7.0 it's a major version change.
+  # There has been some breaking change that was introduced in the control plane component NDM in version 2.0.
+  # It was mainly around disk identification algorithm that's used.
+  # If you roll back there are chances that there will be lot of stale entries for blockdevices in the cluster.
+  # Again it has not been tested.
 
 else
-
   echo "--> Missing argument, should be either 'update' or 'rollback'"
-
 fi
