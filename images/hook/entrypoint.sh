@@ -2,9 +2,7 @@
 
 set -eu
 
-echo "---> Assuming changeset from the environment: $RIG_CHANGESET"
-
-TO_VERSION=2.2.0
+echo "--> Assuming changeset from the environment: $RIG_CHANGESET"
 
 function get_control_plane_version() {
   MAYA_POD=$(kubectl get pod -n openebs | grep -i api | cut -d" " -f1)
@@ -33,6 +31,7 @@ function check_control_plane() {
 }
 
 if [ "$1" = "update" ]; then
+  TO_VERSION=2.2.0
 
   echo "--> Checking: $RIG_CHANGESET"
   if rig status "${RIG_CHANGESET}" --retry-attempts=1 --retry-period=1s; then

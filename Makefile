@@ -1,13 +1,13 @@
 REPOSITORY := gravitational.io
 NAME := storage-app
 #VERSION ?= $(shell git describe --tags)
+#TEMP
 VERSION = 0.0.4
 OUT_DIR ?= $(shell pwd)/build
 OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
 GRAVITY ?= gravity
 export
 
-#OPENEBS_VERSION := 1.7.0
 OPENEBS_VERSION := 2.2.0
 OPENEBS_NDM_VERSION := v0.4.7
 DEBIAN_VERSION := buster
