@@ -93,20 +93,20 @@ if [ "$1" = "update" ]; then
 
 elif [ "$1" = "rollback" ]; then
 
-  echo "--> Skipping reverting changeset $RIG_CHANGESET because rollback is not supported for the current version"
-  # OpenEBS doesn't recommend a rollback because of a breaking changes. The following is from the Slack channel of the OpenEBS team:
+  echo "--> Skipping reverting changeset $RIG_CHANGESET because rollback is not supported by OpenEBS for upgrade path: fromVersion=1.7.0 -> toVersion=2.2.0 "
+  # OpenEBS doesn't recommend a rollback because of breaking changes. The following is from the Slack channel of the OpenEBS team:
   # "So I was discussing this with the team and there were some major breaking changes
   # in the control plane in 2.0.0 version also some data plane changes except the image and labels.
   # This can make the rollback difficult."
   # "The labels will come back but the blockdevices have paths that may have changed in the upgrade from 1.7.0 to 2.2.0 which will not work now"
   # "The rollback is not recommended by openebs"
   #
-  # Rolling back from 2.2.0-2.0.0 is perfectly possible.
+  # "Rolling back from 2.2.0-2.0.0 is perfectly possible.
   # But from 2.0.0 to 1.7.0 it's a major version change.
   # There has been some breaking change that was introduced in the control plane component NDM in version 2.0.
   # It was mainly around disk identification algorithm that's used.
   # If you roll back there are chances that there will be lot of stale entries for blockdevices in the cluster.
-  # Again it has not been tested.
+  # Again it has not been tested."
 
 else
   echo "--> Missing argument, should be either 'update' or 'rollback'"
