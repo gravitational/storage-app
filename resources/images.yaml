@@ -10,4 +10,5 @@ spec:
   - image: quay.io/openebs/cstor-pool-mgmt:0.0.0
   - image: quay.io/openebs/cstor-volume-mgmt:0.0.0
   - image: quay.io/openebs/m-exporter:0.0.0
+  - image: quay.io/openebs/m-upgrade:0.0.0
   - image: quay.io/openebs/linux-utils:0.0.0

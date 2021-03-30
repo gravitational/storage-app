@@ -6,8 +6,8 @@ OUT ?= $(OUT_DIR)/$(NAME)-$(VERSION).tar.gz
 GRAVITY ?= gravity
 export
 
-OPENEBS_VERSION := 1.7.0
-OPENEBS_NDM_VERSION := v0.4.7
+OPENEBS_VERSION := 2.2.0
+OPENEBS_NDM_VERSION := 0.9.0
 DEBIAN_VERSION := buster
 
 GRAVITY_EXTRA_FLAGS ?=
@@ -23,6 +23,7 @@ GRAVITY_IMAGE_FLAGS := --set-image=quay.io/openebs/m-apiserver:$(OPENEBS_VERSION
 	--set-image=quay.io/openebs/cstor-pool-mgmt:$(OPENEBS_VERSION) \
 	--set-image=quay.io/openebs/cstor-volume-mgmt:$(OPENEBS_VERSION) \
 	--set-image=quay.io/openebs/m-exporter:$(OPENEBS_VERSION) \
+	--set-image=quay.io/openebs/m-upgrade:$(OPENEBS_VERSION) \
 	--set-image=quay.io/openebs/node-disk-manager-amd64:$(OPENEBS_NDM_VERSION) \
 	--set-image=quay.io/openebs/node-disk-operator-amd64:$(OPENEBS_NDM_VERSION) \
 	--set-image=quay.io/openebs/linux-utils:$(OPENEBS_VERSION) \
